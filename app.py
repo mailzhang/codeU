@@ -12,6 +12,8 @@ app = Flask(__name__)
 def hello_world():  # put application's code here
     return 'Hello World!'
 
+# 接口 API
+
 
 @app.route('/register', methods=['POST'])
 def user_register():
@@ -58,5 +60,53 @@ def user_register():
         connection.close()
 
 
+@app.route('/login', methods=['POST'])
+def user_login():
+    """
+    用户登录
+    :return:
+    """
+    data = request.data
+    # 字符串转 json
+    j_data = json.loads(data)
+
+    user_name = j_data["user_name"]
+    password = j_data["password"]
+
+    # 查询数据该信息是否存在
+
+
+    connection = pymysql.connect(host=settings.DB_HOST,
+                                 user=settings.DB_USER,
+                                 password=settings.DB_PASSWORD,
+                                 db=settings.DB_NAME,
+                                 charset=settings.DB_CHARSET,
+                                 cursorclass=pymysql.cursors.DictCursor)
+
+    try:
+        with connection.cursor() as cursor:
+            # Create a new record
+            sql = "SELECT * FROM  u_user WHERE user_name =%s"
+            cursor.execute(sql, (user_name))
+        result = cursor.fetchone()
+        print("查询结果", result)
+
+        if not result:
+
+            return {"message": "用户不存在"}
+
+        if password == result['password']:
+
+            return {"message": "登录成功"}
+
+        else:
+
+            return {"message": "密码错误"}
+
+    finally:
+        connection.close()
+
+
 if __name__ == '__main__':
     app.run()
+
